@@ -1,0 +1,19 @@
+<launch>
+    <node name="create_cloud_xyzrgb" pkg="octomap_filter" type="create_cloud_xyzrgb.py" />
+
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server" output="screen" args="">
+        <param name="resolution" value="0.05" />
+        <param name="frame_id" type="string" value="map" />
+		<param name="sensor_model/max_range" value="4.0" />
+        <remap from="cloud_in" to="artificial_cloud" />
+    </node>
+
+    <node pkg="tf"
+        type="static_transform_publisher"
+        name="link1_broadcaster"
+        args="0 0 0 0 0 0 world map 100" />
+
+    <node name="octomap_filter_test" pkg="octomap_filter" type="octomap_filter_test" output="screen" />
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find octomap_filter)/rviz/octo_filter_test.rviz" />
+</launch>

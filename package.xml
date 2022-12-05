@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>octomap_filter</name>
+  <version>0.0.0</version>
+  <description>The octomap_filter package</description>
+
+  <maintainer email="markz@todo.todo">markz</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>geometry_msgs</depend>
+  <depend>geometric_shapes</depend>
+  <depend>octomap_server</depend>
+  <depend>sensor_msgs</depend>
+  <depend>shape_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>visualization_msgs</depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

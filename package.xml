@@ -11,12 +11,16 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>geometry_msgs</depend>
   <depend>geometric_shapes</depend>
-  <depend>octomap_server</depend>
   <depend>sensor_msgs</depend>
   <depend>shape_msgs</depend>
   <depend>std_msgs</depend>
   <depend>roscpp</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
   <depend>visualization_msgs</depend>
+
+  <exec_depend>octomap_server</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

@@ -1,8 +1,9 @@
+#include <string>
 #include <vector>
 
 #include <geometric_shapes/shape_to_marker.h>
 
-#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <shape_msgs/SolidPrimitive.h>
 #include <visualization_msgs/Marker.h>
 
@@ -12,7 +13,13 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "octomap_filter_test");
     ros::NodeHandle nh;
-    octomap_filter::OctomapFilter octo_filter(nh);
+    ros::NodeHandle nh_priv("~");
+
+    std::string out_frame;
+    bool clear_map;
+    nh_priv.param<std::string>("output_frame", out_frame, "map");
+    nh_priv.param<bool>("clear_octo_state", clear_map, false);
+    octomap_filter::OctomapFilter octo_filter(nh, out_frame, clear_map);
     ros::Publisher mkr_pub = nh.advertise<visualization_msgs::Marker>("/test_shapes_markers", 3);
 
     ROS_INFO("Test octomap_filtering with shape objects");
@@ -23,7 +30,7 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         std::vector<shape_msgs::SolidPrimitive> current_shapes;
-        std::vector<geometry_msgs::Pose> shapes_poses;
+        std::vector<geometry_msgs::PoseStamped> shapes_poses;
 
         shape_msgs::SolidPrimitive sphere_ignored, sphere_filtered, box_filtered;
 
@@ -31,30 +38,34 @@ int main(int argc, char **argv)
         sphere_ignored.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = 0.15;
         sphere_ignored.type = shape_msgs::SolidPrimitive::SPHERE;
 
-        geometry_msgs::Pose sphere_ignored_pose;
-        sphere_ignored_pose.position.x = 0.4;
-        sphere_ignored_pose.position.y = 1.0;
-        sphere_ignored_pose.position.z = 0.05;
-        sphere_ignored_pose.orientation.x = 0.0;
-        sphere_ignored_pose.orientation.y = 0.0;
-        sphere_ignored_pose.orientation.z = 0.0;
-        sphere_ignored_pose.orientation.w = 1.0;
+        geometry_msgs::PoseStamped sphere_ignored_pose;
+        sphere_ignored_pose.header.stamp = ros::Time::now();
+        sphere_ignored_pose.header.frame_id = out_frame;
+        sphere_ignored_pose.pose.position.x = 0.4;
+        sphere_ignored_pose.pose.position.y = 1.0;
+        sphere_ignored_pose.pose.position.z = 0.05;
+        sphere_ignored_pose.pose.orientation.x = 0.0;
+        sphere_ignored_pose.pose.orientation.y = 0.0;
+        sphere_ignored_pose.pose.orientation.z = 0.0;
+        sphere_ignored_pose.pose.orientation.w = 1.0;
 
         sphere_filtered.dimensions.resize(1);
         sphere_filtered.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = 0.15;
         sphere_filtered.type = shape_msgs::SolidPrimitive::SPHERE;
-        geometry_msgs::Pose sphere_filtered_pose;
-        sphere_filtered_pose = sphere_ignored_pose;
-        sphere_filtered_pose.position.y -= 0.7;
+        geometry_msgs::PoseStamped sphere_filtered_pose;
+        sphere_filtered_pose.header = sphere_ignored_pose.header;
+        sphere_filtered_pose.pose = sphere_ignored_pose.pose;
+        sphere_filtered_pose.pose.position.y -= 0.7;
 
         box_filtered.dimensions.resize(3);
         box_filtered.type = shape_msgs::SolidPrimitive::BOX;
         box_filtered.dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.15;
         box_filtered.dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.2;
         box_filtered.dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.2;
-        geometry_msgs::Pose box_pose;
-        box_pose = sphere_filtered_pose;
-        box_pose.position.x += 0.5;
+        geometry_msgs::PoseStamped box_pose;
+        box_pose.header = sphere_ignored_pose.header;
+        box_pose.pose =  sphere_ignored_pose.pose;
+        box_pose.pose.position.x += 0.5;
 
         current_shapes.push_back(sphere_filtered);
         current_shapes.push_back(sphere_ignored);
@@ -68,15 +79,14 @@ int main(int argc, char **argv)
         {
             visualization_msgs::Marker shape_mkr;
             shape_mkr.ns = "test_shapes";
-            shape_mkr.header.stamp = ros::Time::now();
-            shape_mkr.header.frame_id = "map";
+            shape_mkr.header = shapes_poses[i].header;
             shape_mkr.action = visualization_msgs::Marker::ADD;
             shape_mkr.id = seq_id;
             seq_id++;
 
             // Convert shape to marker
             geometric_shapes::constructMarkerFromShape(current_shapes[i], shape_mkr);
-            shape_mkr.pose = shapes_poses[i];
+            shape_mkr.pose = shapes_poses[i].pose;
 
             // If even, then filter
             if (i % 2 == 0)

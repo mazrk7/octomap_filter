@@ -10,23 +10,24 @@ project(octomap_filter)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   geometric_shapes
-  octomap_server
   roscpp
   sensor_msgs
   shape_msgs
   std_msgs
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
   visualization_msgs
 )
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
-find_package(Eigen3 REQUIRED)
 
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES octomap_filter
- CATKIN_DEPENDS geometry_msgs geometric_shapes octomap_server roscpp sensor_msgs shape_msgs std_msgs visualization_msgs
- DEPENDS Boost Eigen3
+ CATKIN_DEPENDS geometry_msgs geometric_shapes octomap_server roscpp sensor_msgs shape_msgs std_msgs tf2 tf2_ros tf2_geometry_msgs visualization_msgs
+ DEPENDS Boost
 )
 
 ###########
@@ -39,7 +40,6 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
-  ${Eigen3_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -49,17 +49,10 @@ add_library(${PROJECT_NAME}
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  ${Eigen3_LIBRARIES}
   ${OCTOMAP_LIBRARIES}
 )
 
 ## Declare a C++ executable
-add_executable(${PROJECT_NAME}_node nodes/octomap_filter_node.cpp)
-add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_node
-  ${PROJECT_NAME}
-)
-
 add_executable(${PROJECT_NAME}_test nodes/octomap_filter_test.cpp)
 add_dependencies(${PROJECT_NAME}_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_test
@@ -69,11 +62,6 @@ target_link_libraries(${PROJECT_NAME}_test
 #############
 ## Install ##
 #############
-
-## Mark executables for installation
-install(TARGETS ${PROJECT_NAME}_node
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
 
 ## Mark libraries for installation
 install(TARGETS ${PROJECT_NAME}

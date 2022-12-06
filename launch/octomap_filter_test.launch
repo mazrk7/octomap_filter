@@ -1,19 +1,35 @@
 <launch>
+    <!-- Should the octomap clear its state per message -->
+    <arg name="allow_dynamic_updates" default="false" />
+
     <node name="create_cloud_xyzrgb" pkg="octomap_filter" type="create_cloud_xyzrgb.py" />
 
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server" output="screen" args="">
+    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_server" output="screen" args="">
         <param name="resolution" value="0.05" />
         <param name="frame_id" type="string" value="map" />
 		<param name="sensor_model/max_range" value="4.0" />
+        <remap from="cloud_in" to="artificial_cloud" />
+    </node> -->
+    <node pkg="octomap_server" type="octomap_tracking_server_node" name="octomap_server" args="">
+        <param name="resolution" value="0.05" />
+        <param name="frame_id" type="string" value="map" />
+        <param name="track_changes" value="true" />
+        <param name="listen_changes" value="false" />
+        <param name="topic_changes" value="/octomap_tracking_server/changeset" />
+        <param name="change_id_frame" value="map" />
+        <param name="min_change_pub" value="0" />
         <remap from="cloud_in" to="artificial_cloud" />
     </node>
 
     <node pkg="tf"
         type="static_transform_publisher"
-        name="link1_broadcaster"
+        name="world_to_map"
         args="0 0 0 0 0 0 world map 100" />
 
-    <node name="octomap_filter_test" pkg="octomap_filter" type="octomap_filter_test" output="screen" />
+    <node name="octomap_filter_test" pkg="octomap_filter" type="octomap_filter_test" output="screen">
+        <param name="output_frame" value="map" />
+        <param name="clear_octo_state" value="$(arg allow_dynamic_updates)" />
+    </node>
 
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find octomap_filter)/rviz/octo_filter_test.rviz" />
 </launch>

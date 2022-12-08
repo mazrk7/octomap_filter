@@ -41,7 +41,7 @@ namespace octomap_filter
 
         octomap::AbstractOcTree *abs_tree = octomap_msgs::msgToMap(*msg);
 
-        // In case we receive a new octomap before we processed the last one
+        // Delete everytime processing a new one
         if (tree_ != NULL)
         {
             delete tree_;
@@ -92,6 +92,8 @@ namespace octomap_filter
             // delete nodes which are in bounding box
             for (auto k : keys)
                 tree_->deleteNode(k.first, k.second);
+            
+            filter_objects_.clear();
         }
 
         octomap_msgs::Octomap filtered_map;
@@ -123,11 +125,6 @@ namespace octomap_filter
                 ROS_ERROR("Error during transform: %s", ex.what());
                 return false;
             }
-
-            // Clear up
-            delete tree_;
-            tree_ = NULL;
-            octomap_received_ = false;
 
             return true;
         }

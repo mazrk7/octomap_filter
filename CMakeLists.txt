@@ -4,10 +4,7 @@ project(octomap_filter)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
+set(PACKAGE_DEPENDENCIES
   geometry_msgs
   geometric_shapes
   roscpp
@@ -20,14 +17,21 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
 )
 
+## Find catkin macros and libraries
+## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+## is used, also find other catkin packages
+find_package(catkin REQUIRED COMPONENTS ${PACKAGE_DEPENDENCIES})
+
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
+find_package(octomap REQUIRED)
+add_definitions(-DOCTOMAP_NODEBUGOUT)
 
 catkin_package(
- INCLUDE_DIRS include
- LIBRARIES octomap_filter
- CATKIN_DEPENDS geometry_msgs geometric_shapes octomap_server roscpp sensor_msgs shape_msgs std_msgs tf2 tf2_ros tf2_geometry_msgs visualization_msgs
- DEPENDS Boost
+  INCLUDE_DIRS include
+  LIBRARIES octomap_filter
+  CATKIN_DEPENDS ${PACKAGE_DEPENDENCIES} octomap_server
+  DEPENDS Boost OCTOMAP
 )
 
 ###########
@@ -40,6 +44,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
+  ${OCTOMAP_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -49,6 +54,7 @@ add_library(${PROJECT_NAME}
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
   ${OCTOMAP_LIBRARIES}
 )
 

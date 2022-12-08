@@ -1,4 +1,3 @@
-#include <string>
 #include <vector>
 
 #include <geometric_shapes/shape_to_marker.h>
@@ -12,20 +11,14 @@
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "octomap_filter_test");
-    ros::NodeHandle nh;
-    ros::NodeHandle nh_priv("~");
 
-    std::string out_frame;
-    bool clear_map;
-    nh_priv.param<std::string>("output_frame", out_frame, "map");
-    nh_priv.param<bool>("clear_octo_state", clear_map, false);
-    octomap_filter::OctomapFilter octo_filter(nh, out_frame, clear_map);
+    ros::NodeHandle nh;
+    octomap_filter::OctomapFilter octo_filter(nh);
     ros::Publisher mkr_pub = nh.advertise<visualization_msgs::Marker>("/test_shapes_markers", 3);
 
-    ROS_INFO("Test octomap_filtering with shape objects");
+    ROS_INFO("Test octomap_filter with shape objects");
 
     int seq_id = 0;
-
     ros::Rate r(20);
     while (ros::ok())
     {
@@ -40,7 +33,7 @@ int main(int argc, char **argv)
 
         geometry_msgs::PoseStamped sphere_ignored_pose;
         sphere_ignored_pose.header.stamp = ros::Time::now();
-        sphere_ignored_pose.header.frame_id = out_frame;
+        sphere_ignored_pose.header.frame_id = "map";
         sphere_ignored_pose.pose.position.x = 0.4;
         sphere_ignored_pose.pose.position.y = 1.0;
         sphere_ignored_pose.pose.position.z = 0.05;
@@ -64,7 +57,7 @@ int main(int argc, char **argv)
         box_filtered.dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.2;
         geometry_msgs::PoseStamped box_pose;
         box_pose.header = sphere_ignored_pose.header;
-        box_pose.pose =  sphere_ignored_pose.pose;
+        box_pose.pose = sphere_ignored_pose.pose;
         box_pose.pose.position.x += 0.5;
 
         current_shapes.push_back(sphere_filtered);
@@ -91,7 +84,7 @@ int main(int argc, char **argv)
             // If even, then filter
             if (i % 2 == 0)
             {
-                octo_filter.filterObjectFromOctomap(current_shapes[i], shapes_poses[i]);
+                octo_filter.addObjectToOctoFilter(current_shapes[i], shapes_poses[i]);
                 shape_mkr.color.r = 1.0;
                 shape_mkr.color.b = 1.0;
                 shape_mkr.color.g = 0.0;

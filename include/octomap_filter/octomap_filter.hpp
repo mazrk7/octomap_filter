@@ -17,6 +17,7 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
+#include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <std_msgs/Header.h>
@@ -27,37 +28,39 @@ namespace octomap_filter
     {
         public:
             OctomapFilter(ros::NodeHandle nh);
-            OctomapFilter(ros::NodeHandle nh, std::string out_frame, bool clear_octo_state);
             ~OctomapFilter();
 
             bool getOctomapProperties(const std::string &robot_frame,
-                                      octomap_msgs::Octomap &octomap,
-                                      geometry_msgs::TransformStamped &transform);
-            bool filterObjectFromOctomap(const shapes::ShapeMsg &current_shapes,
-                                         const geometry_msgs::PoseStamped &shapes_pose);
-            bool filterObjectFromOctomap(const std::vector<shapes::ShapeMsg> &current_shapes,
-                                         const std::vector<geometry_msgs::PoseStamped> &shapes_poses);
+                                    octomap_msgs::Octomap &octomap,
+                                    geometry_msgs::TransformStamped &transform);
+            bool addObjectToOctoFilter(const shapes::ShapeMsg &current_shapes,
+                                    const geometry_msgs::PoseStamped &shapes_pose);
+            bool addObjectToOctoFilter(const std::vector<shapes::ShapeMsg> &current_shapes,
+                                    const std::vector<geometry_msgs::PoseStamped> &shapes_poses);
 
         private:
+            // Filtered octomap properties
             bool octomap_received_;
             octomap::OcTree *tree_;
-
-            // Filtered octomap header
             std_msgs::Header octo_filter_header_;
-            // Whether the octomap state should be cleared per received message
-            bool clear_octo_map_;
 
+            // Objects to filter from the octomap
+            std::vector<std::pair<shapes::ShapeMsg, geometry_msgs::Pose>> filter_objects_;
+
+            // Transforms to correctly filter objects from octomap (irrespective of frame differences)
             tf2_ros::Buffer buffer_;
             tf2_ros::TransformListener listener_;
 
             boost::mutex tree_mutex_;
 
+            // ROS stuff
             ros::NodeHandle nh_;
+
             ros::Subscriber octomap_sub_;
             ros::Publisher octomap_pub_;
             ros::ServiceClient clear_octo_client_;
 
-            /// Octomap callback
+            /// Octomap and change in cells callback
             void octomapCallback(const octomap_msgs::Octomap::ConstPtr &msg);
     };
 }
